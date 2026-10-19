@@ -11,200 +11,217 @@
 
 <style>
 :root {
-  --bg:#07111F;
-  --surface:#0D1B2A;
-  --panel:#122438;
-  --panel-glass:rgba(18,36,56,0.94);
-  --line:#24384C;
-  --text:#F1F6FC;
-  --muted:#9AAFC3;
-  --dim:#607387;
-  --cyan:#39C6F0;
-  --blue:#438BFF;
-  --safe-top:env(safe-area-inset-top, 0px);
-  --safe-bottom:env(safe-area-inset-bottom, 0px);
-  --radius:14px;
-  --touch:44px;
+  --bg:#07111F; --surface:#0D1B2A; --panel:#122438;
+  --glass:rgba(13,27,42,0.92); --line:#24384C;
+  --text:#F1F6FC; --muted:#9AAFC3; --dim:#607387;
+  --cyan:#39C6F0; --blue:#438BFF; --warn:#F2C27A;
+  --safe-top:env(safe-area-inset-top,0px); --safe-bottom:env(safe-area-inset-bottom,0px);
+  --r:12px; --touch:44px; --header-h:64px;
 }
 * {box-sizing:border-box}
 html, body {height:100%}
 body {
   margin:0;background:var(--bg);color:var(--text);
-  font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,Inter,sans-serif;
+  font:14px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,Inter,sans-serif;
   overflow:hidden;-webkit-font-smoothing:antialiased;
 }
+button {font:inherit;color:inherit}
+.hidden {display:none!important}
 
-/* Map fills the screen; everything else floats above it */
+/* ---------- Map ---------- */
 #map {position:fixed;inset:0;background:var(--bg);z-index:1}
 .leaflet-container {background:var(--bg);font:inherit}
 .leaflet-control-attribution {
-  background:rgba(7,17,31,0.8)!important;color:var(--dim)!important;
-  font-size:10px!important;padding:2px 6px!important;
+  background:rgba(7,17,31,0.82)!important;color:var(--dim)!important;
+  font-size:10px!important;padding:2px 6px!important;max-width:70vw;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
 .leaflet-control-attribution a {color:var(--muted)!important}
-.leaflet-top.leaflet-left {top:calc(72px + var(--safe-top))}
-.leaflet-bar {border:1px solid var(--line)!important;box-shadow:none!important}
-.leaflet-control-zoom a {
-  background:var(--panel-glass)!important;color:var(--text)!important;
-  border-color:var(--line)!important;width:var(--touch)!important;
-  height:var(--touch)!important;line-height:var(--touch)!important;font-size:20px;
+.leaflet-control-scale-line {
+  background:rgba(7,17,31,0.7)!important;color:var(--muted)!important;
+  border-color:var(--muted)!important;font-size:10px!important;
 }
-@media (pointer:coarse) { .leaflet-control-zoom {display:none} }
-.leaflet-popup-content-wrapper, .leaflet-popup-tip {
-  background:var(--panel);color:var(--text);
-  border:1px solid var(--line);box-shadow:0 8px 28px rgba(0,0,0,0.5);
-}
-.leaflet-popup-content-wrapper {border-radius:12px}
-.leaflet-popup-content {margin:12px 14px;line-height:1.5;font-size:14px}
-.leaflet-popup-content b {font-size:15px;color:var(--cyan)}
-.leaflet-container a.leaflet-popup-close-button {color:var(--muted);padding:6px 6px 0 0}
+.leaflet-bottom.leaflet-left {bottom:var(--console-h,56px)}
+.leaflet-bottom.leaflet-right {bottom:var(--console-h,56px)}
+.leaflet-control-zoom {display:none}   /* replaced by the side controls */
 
-/* Header */
-.topbar {
-  position:fixed;left:0;right:0;top:0;z-index:5;
-  padding:calc(10px + var(--safe-top)) 12px 12px;
-  display:flex;align-items:center;justify-content:space-between;gap:10px;
-  background:linear-gradient(to bottom,rgba(7,17,31,0.95) 40%,rgba(7,17,31,0));
-  pointer-events:none;
+/* ---------- Header ---------- */
+.header {
+  position:fixed;left:0;right:0;top:0;z-index:6;
+  height:calc(var(--header-h) + var(--safe-top));
+  padding:var(--safe-top) 14px 0;
+  display:flex;align-items:center;gap:0;
+  background:linear-gradient(to bottom,rgba(7,17,31,0.97),rgba(7,17,31,0.78));
+  border-bottom:1px solid rgba(36,56,76,0.6);
+  backdrop-filter:blur(8px);
 }
-.topbar > * {pointer-events:auto}
-.brand {display:flex;align-items:center;gap:10px;min-width:0}
+.header .seg {display:flex;align-items:center;gap:10px;padding:0 16px;height:100%;border-left:1px solid var(--line);min-width:0}
+.header .seg:first-child {border-left:0;padding-left:0}
+.header .seg.grow {flex:1}
+.brand {gap:10px}
 .emblem {
-  width:40px;height:40px;flex:0 0 40px;border-radius:50%;
-  background:radial-gradient(circle at 38% 36%,#15304D,#0A1626 72%);
-  border:1px solid #2A4A6A;position:relative;overflow:hidden;
+  width:40px;height:40px;flex:0 0 40px;border-radius:50%;position:relative;overflow:hidden;
+  background:radial-gradient(circle at 40% 38%,#163353,#0A1626 72%);border:1px solid #2A4A6A;
 }
-.emblem:before {
+.emblem img {width:100%;height:100%;display:block;object-fit:cover}
+.emblem.placeholder:before {
   content:"";position:absolute;left:-7px;top:15px;width:54px;height:27px;
-  border:1.5px solid var(--cyan);border-radius:50%;
-  transform:rotate(-22deg);opacity:0.8;
+  border:1.5px solid var(--cyan);border-radius:50%;transform:rotate(-22deg);opacity:0.8;
 }
-.emblem:after {
-  content:"";position:absolute;right:10px;top:8px;width:4px;height:4px;
-  border-radius:50%;background:#fff;box-shadow:0 0 6px 1px var(--cyan);
+.emblem.placeholder:after {
+  content:"";position:absolute;right:10px;top:8px;width:4px;height:4px;border-radius:50%;
+  background:#fff;box-shadow:0 0 6px 1px var(--cyan);
 }
-.brand h1 {margin:0;font-size:18px;font-weight:600;letter-spacing:-0.2px;line-height:1.15}
-.brand p {margin:1px 0 0;color:var(--muted);font-size:12px;white-space:nowrap}
-.actions {display:flex;gap:8px}
-.btn {
-  min-height:var(--touch);padding:0 14px;border-radius:var(--radius);
-  border:1px solid var(--line);background:var(--panel-glass);color:var(--text);
-  font:inherit;font-size:14px;cursor:pointer;white-space:nowrap;
-  display:inline-flex;align-items:center;gap:7px;
+.brand h1 {margin:0;font-size:19px;font-weight:600;letter-spacing:-0.2px;line-height:1.1}
+.brand h1 span {color:var(--cyan)}
+.brand p {margin:2px 0 0;color:var(--muted);font-size:12px;white-space:nowrap}
+.kv {display:flex;flex-direction:column;line-height:1.25;min-width:0}
+.kv .k {font-size:11px;color:var(--dim)}
+.kv .v {font-size:14px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kv .v.big {font-size:17px;font-weight:600}
+.ico {width:18px;height:18px;flex:0 0 18px;color:var(--cyan)}
+.iconbtn {
+  width:var(--touch);height:var(--touch);border-radius:var(--r);
+  border:1px solid var(--line);background:var(--glass);cursor:pointer;
+  display:inline-flex;align-items:center;justify-content:center;
 }
-.btn svg {width:18px;height:18px;flex:0 0 18px}
-.btn:hover {border-color:#355270}
-.btn:focus-visible {outline:2px solid var(--cyan);outline-offset:2px}
-.btn.active {border-color:var(--cyan);background:#163552}
-.btn[disabled] {opacity:0.7;cursor:default}
-.btn .label {display:inline}
-@media (max-width:420px) {
-  .btn .label {display:none}
-  .btn {padding:0 12px}
-}
-@media (max-width:360px) {
-  .brand p {display:none}
-}
+.iconbtn svg {width:20px;height:20px;color:var(--text)}
+.iconbtn:hover {border-color:#355270}
+.iconbtn:focus-visible {outline:2px solid var(--cyan);outline-offset:2px}
+.iconbtn.active {border-color:var(--cyan);background:#163552}
+.iconbtn[disabled] {opacity:0.6;cursor:default}
+.iconbtn.busy svg {animation:spin 1s linear infinite}
+@keyframes spin {to {transform:rotate(360deg)}}
 
-/* Layers menu */
+/* ---------- Side controls ---------- */
+.side {
+  position:fixed;right:12px;bottom:calc(var(--console-h,56px) + 16px);z-index:6;
+  display:flex;flex-direction:column;gap:8px;
+}
+@media (pointer:coarse) { .side .zoomctl {display:none} }
+
+/* ---------- Layers menu ---------- */
 .layers {
-  position:fixed;right:12px;top:calc(66px + var(--safe-top));z-index:6;
-  background:var(--panel-glass);border:1px solid var(--line);
-  border-radius:var(--radius);padding:4px 6px;min-width:220px;
-  box-shadow:0 12px 32px rgba(0,0,0,0.5);
+  position:fixed;right:68px;bottom:calc(var(--console-h,56px) + 16px);z-index:7;
+  background:var(--glass);border:1px solid var(--line);border-radius:var(--r);
+  padding:4px 6px;min-width:220px;box-shadow:0 12px 32px rgba(0,0,0,0.5);
 }
-.layers .item {
-  display:flex;align-items:center;justify-content:space-between;gap:12px;
-  min-height:var(--touch);padding:0 8px;font-size:14px;
-}
+.layers .item {display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:var(--touch);padding:0 8px}
 .layers .item + .item {border-top:1px solid var(--line)}
 .layers .item.soon {color:var(--dim)}
-.layers .pill {
-  font-size:11px;padding:3px 8px;border-radius:10px;
-  border:1px solid var(--line);color:var(--muted);
-}
-.layers .pill.on {color:var(--cyan);border-color:#2A5A72}
+.pill {font-size:11px;padding:3px 8px;border-radius:10px;border:1px solid var(--line);color:var(--muted);white-space:nowrap}
+.pill.on {color:var(--cyan);border-color:#2A5A72}
 
-/* Bottom panel */
-.panel {
+/* ---------- Console ---------- */
+.console {
   position:fixed;left:0;right:0;bottom:0;z-index:5;
-  margin:0 auto;max-width:520px;
-  background:var(--panel-glass);border:1px solid var(--line);border-bottom:0;
-  border-radius:16px 16px 0 0;
-  padding:6px 16px calc(12px + var(--safe-bottom));
-  backdrop-filter:blur(10px);
-  box-shadow:0 -12px 32px rgba(0,0,0,0.4);
+  background:var(--glass);border-top:1px solid var(--line);
+  backdrop-filter:blur(10px);box-shadow:0 -12px 32px rgba(0,0,0,0.4);
+  padding-bottom:var(--safe-bottom);
 }
-.panel .handle {
-  display:flex;align-items:center;justify-content:center;
-  height:28px;margin:0 -16px 2px;cursor:pointer;background:none;border:0;width:calc(100% + 32px);
+.strip {
+  display:flex;align-items:center;gap:12px;min-height:56px;padding:0 14px;
+  cursor:pointer;border:0;background:none;width:100%;text-align:left;
 }
-.panel .handle span {width:36px;height:4px;border-radius:2px;background:var(--line)}
-.panel .handle:focus-visible span {background:var(--cyan)}
-.where {display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:28px}
-.where strong {font-size:16px;font-weight:600}
-.badge {
-  font-size:12px;color:var(--muted);padding:3px 9px;border-radius:10px;
-  background:var(--surface);border:1px solid var(--line);white-space:nowrap;
+.strip .place {font-weight:600;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.strip .status {margin-left:auto;font-size:13px;color:var(--cyan);white-space:nowrap}
+.strip .status.warn {color:var(--warn)}
+.strip .chev {width:18px;height:18px;color:var(--muted);transition:transform .18s}
+.console.open .strip .chev {transform:rotate(180deg)}
+.tabs {display:flex;gap:4px;padding:0 10px 8px;border-bottom:1px solid var(--line)}
+.tab {
+  flex:1;min-height:36px;border-radius:8px;border:1px solid transparent;background:none;
+  color:var(--muted);font-size:13px;cursor:pointer;
 }
-.rows {margin-top:6px}
-.row {
-  display:grid;grid-template-columns:24px 1fr;gap:10px;align-items:center;
-  min-height:40px;padding:6px 0;border-top:1px solid var(--line);
+.tab.active {color:var(--text);background:var(--panel);border-color:var(--line)}
+.tab:focus-visible {outline:2px solid var(--cyan)}
+.cards {display:flex;gap:10px;padding:10px 14px 12px}
+.card {
+  flex:1;min-width:0;background:var(--panel);border:1px solid var(--line);
+  border-radius:var(--r);padding:12px 14px;min-height:112px;
 }
-.row .ico {width:24px;text-align:center;color:var(--dim);font-size:16px;line-height:1}
-.row.live .ico {color:var(--cyan)}
-.row strong {display:block;font-size:14px;font-weight:600}
-.row span {display:block;font-size:13px;color:var(--muted);line-height:1.35}
-.row.live span {color:var(--text)}
-.row.live span.warn {color:#F2C27A}
-.row.soon strong {color:var(--muted)}
-.row.soon span {color:var(--dim)}
-.panel .foot {
-  display:flex;justify-content:space-between;align-items:center;
-  margin-top:6px;color:var(--dim);font-size:12px;
-}
-.linkbtn {
-  background:none;border:0;color:var(--cyan);font:inherit;font-size:13px;
-  cursor:pointer;padding:6px 0;min-height:32px;
-}
+.card h3 {margin:0 0 8px;font-size:14px;font-weight:600;display:flex;align-items:center;gap:8px}
+.card h3 .n {color:var(--dim);font-weight:400}
+.card .empty {color:var(--dim);font-size:13px;line-height:1.45;display:flex;gap:10px;align-items:flex-start}
+.card .empty svg {width:22px;height:22px;flex:0 0 22px;color:var(--line)}
+.sel {display:grid;grid-template-columns:auto 1fr;column-gap:14px;row-gap:4px;font-size:13px}
+.sel .k {color:var(--dim)}
+.sel .v {color:var(--text);text-align:right}
+.sel .v.unk {color:var(--dim)}
+.selhead {display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.selhead strong {font-size:16px;color:var(--cyan)}
+.xbtn {width:32px;height:32px;border-radius:8px;border:1px solid var(--line);background:none;cursor:pointer;display:inline-flex;align-items:center;justify-content:center}
+.xbtn svg {width:16px;height:16px;color:var(--muted)}
+.foot {display:flex;justify-content:space-between;align-items:center;padding:0 14px 10px;color:var(--dim);font-size:12px}
+.linkbtn {background:none;border:0;color:var(--cyan);font-size:13px;cursor:pointer;padding:6px 0;min-height:32px}
 .linkbtn:focus-visible {outline:2px solid var(--cyan);border-radius:4px}
-.panel.collapsed .rows .row.soon, .panel.collapsed .foot {display:none}
 
-/* About sheet */
-.sheet {
-  position:fixed;inset:0;z-index:10;background:rgba(4,10,20,0.65);
-  display:flex;align-items:flex-end;justify-content:center;
+/* phone: strip only until opened, then one card at a time */
+.console .body {display:none}
+.console.open .body {display:block}
+.console .card {display:none}
+.console .card.active {display:block}
+
+/* wide: always open, three cards side by side, no tabs */
+@media (min-width:900px) {
+  .console {left:50%;transform:translateX(-50%);max-width:1040px;border:1px solid var(--line);border-bottom:0;border-radius:16px 16px 0 0}
+  .console .body {display:block}
+  .console .strip .chev {display:none}
+  .console .strip {cursor:default}
+  .console .tabs {display:none}
+  .console .card {display:block}
+  .side {right:calc(50% - 520px - 56px)}
+  .layers {right:calc(50% - 520px - 0px)}
 }
+@media (max-width:1180px) and (min-width:900px) {
+  .side {right:12px}
+  .layers {right:68px}
+}
+
+/* header responsiveness */
+@media (max-width:760px) {
+  .header .seg.hide-m {display:none}
+  .brand p {display:none}
+}
+@media (max-width:420px) {
+  .header .seg.time .k {display:none}
+}
+
+/* ---------- About ---------- */
+.sheet {position:fixed;inset:0;z-index:10;background:rgba(4,10,20,0.7);display:flex;align-items:flex-end;justify-content:center}
 .sheet .inner {
-  width:100%;max-width:520px;background:var(--panel);
-  border:1px solid var(--line);border-bottom:0;border-radius:16px 16px 0 0;
-  padding:18px 18px calc(20px + var(--safe-bottom));max-height:85vh;overflow:auto;
+  width:100%;max-width:520px;background:var(--panel);border:1px solid var(--line);border-bottom:0;
+  border-radius:16px 16px 0 0;padding:18px 18px calc(20px + var(--safe-bottom));max-height:85vh;overflow:auto;
 }
-.sheet .head {display:flex;align-items:center;gap:12px;margin-bottom:6px}
-.sheet .emblem {width:52px;height:52px;flex-basis:52px}
+.sheet .logo {display:block;width:100%;max-width:420px;margin:0 auto 10px;border-radius:10px}
+.sheet .head {display:flex;align-items:center;gap:12px;margin-bottom:4px}
+.sheet .head .emblem {width:52px;height:52px;flex-basis:52px}
 .sheet h2 {margin:0;font-size:22px;font-weight:600}
 .sheet .tag {margin:0;color:var(--cyan);font-size:14px}
-.sheet .by {margin:6px 0 12px;color:var(--text);font-size:14px}
+.sheet .by {margin:6px 0 12px;font-size:14px}
 .sheet p {margin:8px 0;color:var(--muted);font-size:14px;line-height:1.5}
 .sheet a {color:var(--cyan)}
-.sheet .close {margin-top:14px;width:100%;justify-content:center}
+.sheet .close {margin-top:14px;width:100%;height:var(--touch);border-radius:var(--r);border:1px solid var(--line);background:var(--surface);cursor:pointer}
 
-.hidden {display:none!important}
-
-/* Map overlay labels */
-.ringlabel {
-  color:var(--cyan);font-size:11px;opacity:0.85;white-space:nowrap;
-  text-shadow:0 0 3px var(--bg),0 0 3px var(--bg);
-}
-.compass {
-  color:var(--muted);font-size:12px;font-weight:600;white-space:nowrap;
-  text-shadow:0 0 4px var(--bg),0 0 4px var(--bg);text-align:center;
-}
-.compass.cardinal {color:var(--text);font-size:13px}
+/* ---------- Map overlay text ---------- */
+.ringlabel {color:var(--cyan);font-size:11px;opacity:0.85;white-space:nowrap;text-shadow:0 0 3px var(--bg),0 0 3px var(--bg)}
+.compass {color:var(--muted);font-size:12px;font-weight:600;white-space:nowrap;text-align:center;text-shadow:0 0 4px var(--bg),0 0 4px var(--bg)}
+.compass.cardinal {color:var(--text);font-size:14px}
+.compass.cardinal small {font-size:9px;color:var(--muted);vertical-align:middle}
 .compass.north {color:var(--cyan)}
 
-@media (prefers-reduced-motion: no-preference) {
+/* aircraft glyph + chip */
+.ac {position:relative;width:28px;height:28px}
+.ac svg {width:28px;height:28px;color:var(--cyan);filter:drop-shadow(0 0 2px rgba(0,0,0,0.9))}
+.ac.selected svg {color:#fff}
+.ac .chip {
+  position:absolute;left:30px;top:2px;background:rgba(13,27,42,0.9);border:1px solid var(--line);
+  border-radius:6px;padding:2px 6px;font-size:11px;line-height:1.3;white-space:nowrap;color:var(--text);
+}
+.ac .chip small {display:block;color:var(--muted)}
+.ac.selected .chip {border-color:var(--cyan)}
+
+@media (prefers-reduced-motion:no-preference) {
   .layers, .sheet .inner {animation:rise .16s ease-out}
   @keyframes rise {from {transform:translateY(6px);opacity:0} to {transform:none;opacity:1}}
 }
@@ -215,25 +232,42 @@ body {
 
 <div id="map" role="application" aria-label="Sky map"></div>
 
-<header class="topbar">
-  <div class="brand">
-    <div class="emblem" aria-hidden="true"></div>
+<header class="header">
+  <div class="seg brand">
+    <div class="emblem placeholder" id="emblem"><img src="assets/skypeek-emblem.png" alt="" onload="this.parentNode.classList.remove('placeholder')" onerror="this.remove()"></div>
     <div>
-      <h1>Sky Peek</h1>
+      <h1>Sky <span>Peek</span></h1>
       <p>Look Up. Stay Curious.</p>
     </div>
   </div>
-  <div class="actions">
-    <button id="layersBtn" class="btn" aria-expanded="false" aria-controls="layersMenu" aria-label="Map layers">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 4l9 5-9 5-9-5 9-5z"/><path d="M3 14l9 5 9-5"/></svg>
-      <span class="label">Layers</span>
-    </button>
-    <button id="locationBtn" class="btn" aria-label="Use my location">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="8"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2"/></svg>
-      <span class="label" id="locationLabel">My location</span>
+  <div class="seg grow hide-m">
+    <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s-6-5.3-6-11a6 6 0 0 1 12 0c0 5.7-6 11-6 11z"/><circle cx="12" cy="10" r="2.2"/></svg>
+    <div class="kv"><span class="k">Selected location</span><span class="v big" id="placeHdr">Trivandrum, India</span></div>
+  </div>
+  <div class="seg time">
+    <div class="kv"><span class="v big" id="clock">--:--</span><span class="k" id="dateLine">…</span></div>
+  </div>
+  <div class="seg hide-m">
+    <svg class="ico" id="dayIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+    <div class="kv"><span class="v" id="dayMode">…</span><span class="k">Aircraft live</span></div>
+  </div>
+  <div class="seg" style="margin-left:auto;padding-right:0">
+    <button class="iconbtn" id="aboutBtn" aria-label="About Sky Peek">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
     </button>
   </div>
 </header>
+
+<div class="side">
+  <button class="iconbtn" id="locationBtn" aria-label="Use my location">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="8"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2"/></svg>
+  </button>
+  <button class="iconbtn zoomctl" id="zoomIn" aria-label="Zoom in"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg></button>
+  <button class="iconbtn zoomctl" id="zoomOut" aria-label="Zoom out"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/></svg></button>
+  <button class="iconbtn" id="layersBtn" aria-expanded="false" aria-controls="layersMenu" aria-label="Map layers">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M12 4l9 5-9 5-9-5 9-5z"/><path d="M3 14l9 5 9-5"/></svg>
+  </button>
+</div>
 
 <div id="layersMenu" class="layers hidden" role="group" aria-label="Map layers">
   <div class="item"><span>Aircraft</span><span class="pill on">On</span></div>
@@ -241,47 +275,62 @@ body {
   <div class="item soon"><span>Weather radar</span><span class="pill">Coming soon</span></div>
 </div>
 
-<section id="panel" class="panel" aria-label="What is above you">
-  <button class="handle" id="panelToggle" aria-expanded="true" aria-label="Collapse panel"><span></span></button>
-  <div class="where">
-    <strong id="place">Trivandrum, India</strong>
-    <span id="dayMode" class="badge">…</span>
-  </div>
-
-  <div class="rows">
-    <div class="row live">
-      <div class="ico">✈</div>
-      <div>
-        <strong>Aircraft nearby</strong>
-        <span id="aircraftStatus">Connecting…</span>
+<section class="console" id="console" aria-label="Observation console">
+  <button class="strip" id="strip" aria-expanded="false" aria-controls="consoleBody">
+    <span class="place" id="place">Trivandrum, India</span>
+    <span class="status" id="aircraftStatus">Connecting…</span>
+    <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 15l6-6 6 6"/></svg>
+  </button>
+  <div class="body" id="consoleBody">
+    <div class="tabs" role="tablist">
+      <button class="tab active" role="tab" data-card="visible">Visible now</button>
+      <button class="tab" role="tab" data-card="pass">Next pass</button>
+      <button class="tab" role="tab" data-card="selected">Selected</button>
+    </div>
+    <div class="cards">
+      <div class="card active" id="card-visible">
+        <h3>Visible now <span class="n">(0)</span></h3>
+        <div class="empty">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M3 12c3-5 15-5 18 0M3 12c3 5 15 5 18 0"/></svg>
+          <span>Satellite tracking is not available yet.</span>
+        </div>
+      </div>
+      <div class="card" id="card-pass">
+        <h3>Next visible pass</h3>
+        <div class="empty">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 20C8 8 16 8 20 4"/><circle cx="12" cy="12" r="1.5"/></svg>
+          <span>Pass predictions will appear here once satellite tracking is enabled.</span>
+        </div>
+      </div>
+      <div class="card" id="card-selected">
+        <div id="selEmpty">
+          <h3>Selected</h3>
+          <div class="empty">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 3l2 7h7l-5.5 4 2 7L12 17l-5.5 4 2-7L3 10h7z"/></svg>
+            <span>Tap an aircraft on the map to view its details.</span>
+          </div>
+        </div>
+        <div id="selBody" class="hidden">
+          <div class="selhead">
+            <strong id="selTitle"></strong>
+            <button class="xbtn" id="selClose" aria-label="Deselect"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+          </div>
+          <div class="sel" id="selGrid"></div>
+        </div>
       </div>
     </div>
-    <div class="row soon">
-      <div class="ico">✦</div>
-      <div>
-        <strong>Visible now</strong>
-        <span>Satellite tracking coming soon</span>
-      </div>
+    <div class="foot">
+      <span>Rings are 10 km apart, out to 50 km</span>
+      <button class="linkbtn" id="aboutBtn2">About Sky Peek</button>
     </div>
-    <div class="row soon">
-      <div class="ico">◉</div>
-      <div>
-        <strong>Next visible pass</strong>
-        <span>Pass predictions coming soon</span>
-      </div>
-    </div>
-  </div>
-
-  <div class="foot">
-    <span>Rings are 10 km apart, out to 50 km</span>
-    <button id="aboutBtn" class="linkbtn">About Sky Peek</button>
   </div>
 </section>
 
 <div id="aboutSheet" class="sheet hidden" role="dialog" aria-modal="true" aria-labelledby="aboutTitle">
   <div class="inner">
+    <img class="logo" src="assets/skypeek-logo.jpg" alt="" onerror="this.remove()">
     <div class="head">
-      <div class="emblem" aria-hidden="true"></div>
+      <div class="emblem placeholder"><img src="assets/skypeek-emblem.png" alt="" onload="this.parentNode.classList.remove('placeholder')" onerror="this.remove()"></div>
       <div>
         <h2 id="aboutTitle">Sky Peek</h2>
         <p class="tag">Look Up. Stay Curious.</p>
@@ -291,7 +340,8 @@ body {
     <p>Sky Peek shows what is above you: aircraft around your location now, with satellite and Starlink passes to follow in a later update.</p>
     <p>The rings mark ground distance from your position, 10 km apart. They are a sense of scale, not a guide to what is visible in the sky.</p>
     <p>Your location is kept in your browser and used to centre the map. To find nearby aircraft, the selected coordinates are sent to the aircraft data provider with each request. Sky Peek has no server of its own and stores nothing.</p>
-        <p>Aircraft data: <a href="https://adsb.fi" target="_blank" rel="noopener">adsb.fi</a> open data, for personal, non-commercial use. Map: <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors, dark basemap by <a href="https://www.esri.com" target="_blank" rel="noopener">Esri</a>.</p><button id="aboutClose" class="btn close">Close</button>
+    <p>Aircraft data: <a href="https://adsb.fi" target="_blank" rel="noopener">adsb.fi</a> open data, for personal, non-commercial use. Basemap: <a href="https://www.esri.com" target="_blank" rel="noopener">Esri</a> World Dark Gray Canvas, with data from Esri, HERE, Garmin and <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors.</p>
+    <button class="close" id="aboutClose">Close</button>
   </div>
 </div>
 
@@ -307,22 +357,32 @@ let lon = 76.944;
 let map;
 let marker;
 
-/* Rings: five geographic circles, 10 km apart, out to 50 km. Only the
-   first is labelled. Ground distance only; never a satellite visibility
-   boundary, and a different number from the aircraft search radius. */
+/* Rings: five geographic circles, 10 km apart, out to 50 km, all labelled on
+   the north axis. Ground distance only; never a satellite visibility boundary,
+   and a different number from the aircraft search radius. */
 const RING_STEP_KM = 10;
 const RING_COUNT = 5;
-const VIEW_RADIUS_KM = 50;     // the view always shows at least this much around you
-const MAX_PAN_KM = 150;        // and never wanders further than this
+const VIEW_RADIUS_KM = 50;
+const MAX_PAN_KM = 150;
 let ringsLayer = null;
 let compassLayer = null;
 
-function updateDayNight() {
-  const hour = new Date().getHours();
+const $ = id => document.getElementById(id);
+
+/* ---------- Clock and day/night ---------- */
+function updateClock() {
+  const now = new Date();
+  $("clock").textContent = now.toLocaleTimeString([], {hour: "numeric", minute: "2-digit"});
+  $("dateLine").textContent = now.toLocaleDateString([], {weekday: "short", day: "numeric", month: "short", year: "numeric"});
+  const hour = now.getHours();
   const night = hour < 6 || hour >= 18;
-  document.getElementById("dayMode").textContent = night ? "Night" : "Daytime";
+  $("dayMode").textContent = night ? "Night mode" : "Daytime";
+  $("dayIcon").innerHTML = night
+    ? '<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>'
+    : '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>';
 }
 
+/* ---------- Geometry ---------- */
 function destinationPoint(latDeg, lonDeg, bearingDeg, distanceKm) {
   const R = 6371, d = distanceKm / R, brng = bearingDeg * Math.PI / 180;
   const lat1 = latDeg * Math.PI / 180, lon1 = lonDeg * Math.PI / 180;
@@ -334,49 +394,62 @@ function destinationPoint(latDeg, lonDeg, bearingDeg, distanceKm) {
 function drawRings() {
   if (ringsLayer) map.removeLayer(ringsLayer);
   ringsLayer = L.layerGroup().addTo(map);
+  const outerKm = RING_COUNT * RING_STEP_KM;
+
+  // cross-hair lines, out to the outer ring
+  [0, 90, 180, 270].forEach(b => {
+    L.polyline([[lat, lon], destinationPoint(lat, lon, b, outerKm)], {
+      color: "#9AAFC3", weight: 0.8, opacity: 0.35, interactive: false
+    }).addTo(ringsLayer);
+  });
+
   for (let i = 1; i <= RING_COUNT; i++) {
     const km = i * RING_STEP_KM;
     const outer = i === RING_COUNT;
     L.circle([lat, lon], {
-      radius: km * 1000,
-      color: "#39C6F0",
-      weight: outer ? 1.25 : 0.9,
-      opacity: outer ? 0.55 : 0.3,
-      dashArray: outer ? null : "3 7",
-      fill: false, interactive: false
+      radius: km * 1000, color: "#39C6F0",
+      weight: outer ? 1.25 : 0.9, opacity: outer ? 0.6 : 0.35,
+      dashArray: outer ? "6 6" : "3 7", fill: false, interactive: false
+    }).addTo(ringsLayer);
+    // label just east of the north axis
+    L.marker(destinationPoint(lat, lon, 0, km), {
+      interactive: false,
+      icon: L.divIcon({className: "ringlabel", html: km + " km", iconSize: null, iconAnchor: [-6, 14]})
     }).addTo(ringsLayer);
   }
-  L.marker(destinationPoint(lat, lon, 135, RING_STEP_KM), {
-    interactive: false,
-    icon: L.divIcon({className: "ringlabel", html: "10 km", iconSize: null})
-  }).addTo(ringsLayer);
 }
 
 function drawCompass() {
   if (compassLayer) map.removeLayer(compassLayer);
   compassLayer = L.layerGroup().addTo(map);
   const points = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"];
+  const arrows = {N: "▲", E: "▶", S: "▼", W: "◀"};
   const outer = RING_COUNT * RING_STEP_KM + 5;
   points.forEach((name, i) => {
-    let cls = name.length === 1 ? "compass cardinal" : "compass";
+    const cardinal = name.length === 1;
+    let cls = cardinal ? "compass cardinal" : "compass";
     if (name === "N") cls += " north";
+    const html = cardinal ? `${name} <small>${arrows[name]}</small>` : name;
     L.marker(destinationPoint(lat, lon, i * 45, outer), {
       interactive: false,
-      icon: L.divIcon({className: cls, html: name, iconSize: [30, 16], iconAnchor: [15, 8]})
+      icon: L.divIcon({className: cls, html, iconSize: [40, 18], iconAnchor: [20, 9]})
     }).addTo(compassLayer);
   });
 }
 
+/* ---------- Map ---------- */
 function updateMap() {
   if (!map) {
-    map = L.map("map", {zoomSnap: 0.5, zoomDelta: 0.5, attributionControl: true});
-        L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}", {
+    map = L.map("map", {zoomControl: false, zoomSnap: 0.5, zoomDelta: 0.5});
+    L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}", {
       attribution: 'Map &copy; Esri, HERE, Garmin, &copy; OpenStreetMap contributors | Aircraft: <a href="https://adsb.fi">adsb.fi</a> | Sky Peek by ZDI',
       maxZoom: 16
     }).addTo(map);
+    L.control.scale({imperial: false, position: "bottomleft"}).addTo(map);
     marker = L.circleMarker([lat, lon], {
-      radius: 6, color: "#FFFFFF", weight: 2, fillColor: "#438BFF", fillOpacity: 1
-    }).addTo(map).bindPopup("Your selected location");
+      radius: 6, color: "#FFFFFF", weight: 2, fillColor: "#438BFF", fillOpacity: 1, interactive: false
+    }).addTo(map);
+    map.on("click", deselectAircraft);
   } else {
     marker.setLatLng([lat, lon]);
   }
@@ -385,21 +458,23 @@ function updateMap() {
   drawCompass();
 }
 
-/* Fit the 50 km circle into the free part of the screen, then lock the
-   zoom so you cannot zoom out past it, and keep panning within 150 km. */
-function fitView() {
-  map.invalidateSize({animate: false});
-  const topbar = document.querySelector(".topbar");
-  const panel = document.getElementById("panel");
-  const topPad = topbar ? topbar.offsetHeight : 0;
-  const bottomPad = panel ? panel.offsetHeight : 0;
-  const here = L.latLng(lat, lon);
+function consoleHeight() {
+  return $("console").offsetHeight;
+}
 
+/* Fit the 50 km ring into the free screen area, lock zoom-out there,
+   and keep panning within 150 km of the selected location. */
+function fitView() {
+  document.documentElement.style.setProperty("--console-h", consoleHeight() + "px");
+  map.invalidateSize({animate: false});
+  const topPad = document.querySelector(".header").offsetHeight;
+  const bottomPad = consoleHeight();
+  const here = L.latLng(lat, lon);
   map.setMinZoom(0);
   map.setMaxBounds(null);
-  map.fitBounds(here.toBounds((VIEW_RADIUS_KM + 7) * 2000), {
-    paddingTopLeft: [10, topPad + 6],
-    paddingBottomRight: [10, bottomPad + 6],
+  map.fitBounds(here.toBounds((VIEW_RADIUS_KM + 8) * 2000), {
+    paddingTopLeft: [10, topPad + 8],
+    paddingBottomRight: [10, bottomPad + 8],
     animate: false
   });
   map.setMinZoom(map.getZoom());
@@ -407,150 +482,181 @@ function fitView() {
   map.setMaxBounds(here.toBounds(MAX_PAN_KM * 2000));
 }
 
+/* ---------- Location ---------- */
+function setPlaceLabel(text) {
+  $("place").textContent = text;
+  $("placeHdr").textContent = text;
+}
 function useLocation() {
-  if (!navigator.geolocation) {
-    alert("Location is not supported by this browser.");
-    return;
-  }
-  const placeEl = document.getElementById("place");
-  const btn = document.getElementById("locationBtn");
-  const label = document.getElementById("locationLabel");
-  const previousLabel = placeEl.textContent;
-  btn.disabled = true;
-  label.textContent = "Locating…";
-
+  if (!navigator.geolocation) { alert("Location is not supported by this browser."); return; }
+  const btn = $("locationBtn");
+  const previous = $("place").textContent;
+  btn.disabled = true; btn.classList.add("busy");
+  setPlaceLabel("Finding your location…");
   navigator.geolocation.getCurrentPosition(
-    position => {
-      lat = position.coords.latitude;
-      lon = position.coords.longitude;
-      placeEl.textContent = "Your location";  // coordinates are never shown
-      btn.disabled = false;
-      label.textContent = "My location";
+    pos => {
+      lat = pos.coords.latitude; lon = pos.coords.longitude;
+      setPlaceLabel("Your location");          // coordinates are never shown
+      btn.disabled = false; btn.classList.remove("busy");
+      deselectAircraft();
       updateMap();
       updateAircraft();
     },
     () => {
-      placeEl.textContent = previousLabel;   // map, coordinates and aircraft untouched
-      btn.disabled = false;
-      label.textContent = "My location";
+      setPlaceLabel(previous);                 // map, coordinates and aircraft untouched
+      btn.disabled = false; btn.classList.remove("busy");
       alert("Location permission was denied or unavailable. The map stays where it is.");
     },
     {enableHighAccuracy: false, timeout: 12000, maximumAge: 300000}
   );
 }
 
-/* Layers menu */
-const layersBtn = document.getElementById("layersBtn");
-const layersMenu = document.getElementById("layersMenu");
+/* ---------- Controls ---------- */
+$("locationBtn").onclick = useLocation;
+$("zoomIn").onclick = () => map.zoomIn();
+$("zoomOut").onclick = () => map.zoomOut();
+
+const layersBtn = $("layersBtn"), layersMenu = $("layersMenu");
 layersBtn.onclick = () => {
   const open = !layersMenu.classList.toggle("hidden");
   layersBtn.setAttribute("aria-expanded", String(open));
   layersBtn.classList.toggle("active", open);
 };
 
-/* Panel collapse */
-const panel = document.getElementById("panel");
-const panelToggle = document.getElementById("panelToggle");
-panelToggle.onclick = () => {
-  const collapsed = panel.classList.toggle("collapsed");
-  panelToggle.setAttribute("aria-expanded", String(!collapsed));
-  panelToggle.setAttribute("aria-label", collapsed ? "Expand panel" : "Collapse panel");
+const consoleEl = $("console");
+$("strip").onclick = () => {
+  if (window.innerWidth >= 900) return;
+  const open = consoleEl.classList.toggle("open");
+  $("strip").setAttribute("aria-expanded", String(open));
   fitView();
 };
+document.querySelectorAll(".tab").forEach(tab => {
+  tab.onclick = () => showCard(tab.dataset.card);
+});
+function showCard(name) {
+  document.querySelectorAll(".tab").forEach(t => t.classList.toggle("active", t.dataset.card === name));
+  document.querySelectorAll(".card").forEach(c => c.classList.toggle("active", c.id === "card-" + name));
+}
 
-/* About sheet */
-const aboutSheet = document.getElementById("aboutSheet");
-document.getElementById("aboutBtn").onclick = () => aboutSheet.classList.remove("hidden");
-document.getElementById("aboutClose").onclick = () => aboutSheet.classList.add("hidden");
-aboutSheet.onclick = e => { if (e.target === aboutSheet) aboutSheet.classList.add("hidden"); };
+const aboutSheet = $("aboutSheet");
+const openAbout = () => aboutSheet.classList.remove("hidden");
+const closeAbout = () => aboutSheet.classList.add("hidden");
+$("aboutBtn").onclick = openAbout;
+$("aboutBtn2").onclick = openAbout;
+$("aboutClose").onclick = closeAbout;
+aboutSheet.onclick = e => { if (e.target === aboutSheet) closeAbout(); };
 document.addEventListener("keydown", e => {
   if (e.key === "Escape") {
-    aboutSheet.classList.add("hidden");
+    closeAbout();
     layersMenu.classList.add("hidden");
     layersBtn.setAttribute("aria-expanded", "false");
     layersBtn.classList.remove("active");
   }
 });
 
-document.getElementById("locationBtn").onclick = useLocation;
 let resizeTimer;
 window.addEventListener("resize", () => {
   clearTimeout(resizeTimer);
   resizeTimer = setTimeout(() => { if (map) fitView(); }, 120);
 });
 
-updateDayNight();
+updateClock();
+setInterval(updateClock, 15000);
 
-/* Aircraft search radius for the adsb.fi request, in nautical miles.
-   50 NM is about 93 km, deliberately wider than the 50 km rings. */
+/* ---------- Aircraft ----------
+   Data flow is unchanged from the original implementation: adsb.fi open data,
+   50 nautical miles (about 93 km, wider than the 50 km rings), refresh every
+   60 seconds, same error handling. Rendering now uses a rotated glyph with a
+   chip, and tapping fills the Selected card instead of a popup. */
 const AIRCRAFT_SEARCH_NM = 50;
+const PLANE_SVG = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg>';
 
 let aircraftLayer = null;
 let aircraftRefreshTimer = null;
+let selectedHex = null;
+let lastAircraft = [];
+
+function fmt(v, unit) { return (v === undefined || v === null || v === "") ? null : `${v}${unit}`; }
+
+function aircraftIcon(plane, selected) {
+  const callsign = (plane.flight || plane.r || "").trim();
+  const alt = typeof plane.alt_baro === "number" ? Math.round(plane.alt_baro).toLocaleString() + " ft" : null;
+  const chip = callsign || alt
+    ? `<span class="chip">${callsign || "Unknown aircraft"}${alt ? `<small>${alt}</small>` : ""}</span>` : "";
+  const rot = typeof plane.track === "number" ? plane.track : 0;
+  return L.divIcon({
+    className: "ac" + (selected ? " selected" : ""),
+    html: `<div style="transform:rotate(${rot}deg);width:28px;height:28px">${PLANE_SVG}</div>${chip}`,
+    iconSize: [28, 28], iconAnchor: [14, 14]
+  });
+}
+
+function selectAircraft(plane) {
+  selectedHex = plane.hex || null;
+  const callsign = (plane.flight || plane.r || "").trim() || "Unknown aircraft";
+  $("selTitle").textContent = callsign;
+  const rows = [
+    ["Altitude", fmt(typeof plane.alt_baro === "number" ? Math.round(plane.alt_baro).toLocaleString() : null, " ft")],
+    ["Speed", fmt(typeof plane.gs === "number" ? Math.round(plane.gs) : null, " kn")],
+    ["Heading", fmt(typeof plane.track === "number" ? Math.round(plane.track) : null, "°")],
+    ["Vertical rate", fmt(typeof plane.baro_rate === "number" ? plane.baro_rate : null, " ft/min")],
+    ["Type", plane.t || null],
+    ["Registration", plane.r || null],
+    ["Squawk", plane.squawk || null]
+  ];
+  $("selGrid").innerHTML = rows.map(([k, v]) =>
+    `<span class="k">${k}</span><span class="v${v ? "" : " unk"}">${v || "unavailable"}</span>`).join("");
+  $("selEmpty").classList.add("hidden");
+  $("selBody").classList.remove("hidden");
+  showCard("selected");
+  if (window.innerWidth < 900 && !consoleEl.classList.contains("open")) {
+    consoleEl.classList.add("open");
+    $("strip").setAttribute("aria-expanded", "true");
+    fitView();
+  }
+  renderAircraft(lastAircraft);
+}
+
+function deselectAircraft() {
+  if (!selectedHex) return;
+  selectedHex = null;
+  $("selEmpty").classList.remove("hidden");
+  $("selBody").classList.add("hidden");
+  renderAircraft(lastAircraft);
+}
+$("selClose").onclick = deselectAircraft;
+
+function renderAircraft(list) {
+  if (aircraftLayer) map.removeLayer(aircraftLayer);
+  aircraftLayer = L.layerGroup().addTo(map);
+  let plotted = 0, stillSelected = false;
+  list.forEach(plane => {
+    if (typeof plane.lat !== "number" || typeof plane.lon !== "number") return;
+    const isSel = selectedHex && plane.hex === selectedHex;
+    if (isSel) stillSelected = true;
+    const m = L.marker([plane.lat, plane.lon], {icon: aircraftIcon(plane, isSel), keyboard: false});
+    m.on("click", e => { L.DomEvent.stopPropagation(e); selectAircraft(plane); });
+    m.addTo(aircraftLayer);
+    plotted++;
+  });
+  if (selectedHex && !stillSelected) {
+    $("selTitle").textContent = $("selTitle").textContent + " (left range)";
+  }
+  return plotted;
+}
 
 async function updateAircraft() {
-  const status = document.getElementById("aircraftStatus");
+  const status = $("aircraftStatus");
   status.classList.remove("warn");
-
   try {
     status.textContent = "Loading aircraft…";
-
-    const url =
-      `https://opendata.adsb.fi/api/v2/lat/${lat}/lon/${lon}/dist/${AIRCRAFT_SEARCH_NM}`;
-
-    const response = await fetch(url, {
-  mode: "cors"
-});
-
-    if (!response.ok) {
-      throw new Error("Aircraft data unavailable");
-    }
-
+    const url = `https://opendata.adsb.fi/api/v2/lat/${lat}/lon/${lon}/dist/${AIRCRAFT_SEARCH_NM}`;
+    const response = await fetch(url, {mode: "cors"});
+    if (!response.ok) throw new Error("Aircraft data unavailable");
     const data = await response.json();
-    const aircraft = data.aircraft || data.ac || [];
-
-    if (aircraftLayer) {
-      map.removeLayer(aircraftLayer);
-    }
-
-    aircraftLayer = L.layerGroup().addTo(map);
-    let plotted = 0;
-
-    aircraft.forEach(plane => {
-      if (typeof plane.lat !== "number" ||
-          typeof plane.lon !== "number") return;
-
-      const marker = L.circleMarker(
-        [plane.lat, plane.lon],
-        {
-          radius: 6,
-          color: "#39C6F0",
-          fillColor: "#39C6F0",
-          fillOpacity: 0.9,
-          weight: 2
-        }
-      );
-
-      const callsign = (plane.flight || plane.r || "Unknown aircraft").trim();
-      const altitude = plane.alt_baro ?? "Unknown";
-      const speed = plane.gs ?? "Unknown";
-      const heading = plane.track ?? "Unknown";
-
-      marker.bindPopup(
-        `<b>${callsign}</b><br>` +
-        `Altitude: ${altitude} ft<br>` +
-        `Speed: ${speed} knots<br>` +
-        `Heading: ${heading}°`
-      );
-
-      marker.addTo(aircraftLayer);
-      plotted++;
-    });
-
-    status.textContent = plotted === 0
-      ? "No aircraft in range right now"
-      : `${plotted} aircraft on the map`;
-
+    lastAircraft = data.aircraft || data.ac || [];
+    const plotted = renderAircraft(lastAircraft);
+    status.textContent = plotted === 0 ? "No aircraft in range right now" : `${plotted} aircraft on the map`;
   } catch (error) {
     status.textContent = "Aircraft data temporarily unavailable";
     status.classList.add("warn");
@@ -560,13 +666,10 @@ async function updateAircraft() {
 
 function startAircraftTracking() {
   updateAircraft();
-
-  if (aircraftRefreshTimer) {
-    clearInterval(aircraftRefreshTimer);
-  }
-
+  if (aircraftRefreshTimer) clearInterval(aircraftRefreshTimer);
   aircraftRefreshTimer = setInterval(updateAircraft, 60000);
 }
+
 updateMap();
 startAircraftTracking();
 </script>
