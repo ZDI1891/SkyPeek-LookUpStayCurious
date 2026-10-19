@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#080e19">
+<title>Sky Peek. Look Up. Stay Curious.</title>
+
+<link rel="stylesheet"
+ href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+
+<style>
+:root {
+  --bg:#080e19;
+  --panel:#111b2b;
+  --panel-glass:rgba(17,27,43,0.92);
+  --line:#26364b;
+  --text:#f1f5fb;
+  --muted:#91a3ba;
+  --cyan:#61d8f5;
+  --blue:#3f8cff;
+  --green:#a6efbd;
+  --amber:#ffca75;
+  --safe-top:env(safe-area-inset-top, 0px);
+  --safe-bottom:env(safe-area-inset-bottom, 0px);
+}
+* {box-sizing:border-box}
+html, body {height:100%}
+body {
+  margin:0;background:var(--bg);color:var(--text);
+  font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  overflow:hidden;
+}
+
+/* The map is the whole screen. Everything else floats above it. */
+#map {
+  position:fixed;inset:0;
+  background:#0b1523;z-index:1;
+}
+.leaflet-container {background:#0b1523}
+.leaflet-control-attribution {
+  background:rgba(8,14,25,0.75)!important;color:var(--muted)!important;
+  font-size:10px!important;
+}
+.leaflet-control-attribution a {color:var(--cyan)!important}
+.leaflet-top.leaflet-left {top:calc(64px + var(--safe-top))}
+.leaflet-control-zoom a {
+  background:var(--panel-glass)!important;color:var(--text)!important;
+  border-color:var(--line)!important;
+}
+.leaflet-popup-content-wrapper, .leaflet-popup-tip {
+  background:var(--panel);color:var(--text);
+  box-shadow:0 6px 24px rgba(0,0,0,0.45);
+}
+.leaflet-popup-content {margin:12px 14px;line-height:1.45}
+
+/* Top bar */
+.topbar {
+  position:fixed;left:0;right:0;top:0;z-index:5;
+  padding:calc(10px + var(--safe-top)) 12px 10px;
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  background:linear-gradient(to bottom,rgba(8,14,25,0.92),rgba(8,14,25,0));
+  pointer-events:none;
+}
+.topbar > * {pointer-events:auto}
+.brand {display:flex;align-items:center;gap:10px;min-width:0}
+.emblem {
+  width:38px;height:38px;flex:0 0 38px;border-radius:50%;
+  background:radial-gradient(circle at 35% 35%,#17304a,#0a1424 70%);
+  border:1px solid #2c4a66;position:relative;overflow:hidden;
+}
+.emblem:before {
+  content:"";position:absolute;left:-6px;top:14px;width:50px;height:26px;
+  border:1.5px solid var(--cyan);border-radius:50%;
+  transform:rotate(-20deg);opacity:0.75;
+}
+.emblem:after {
+  content:"";position:absolute;right:9px;top:8px;width:5px;height:5px;
+  border-radius:50%;background:#fff;box-shadow:0 0 8px 2px var(--cyan);
+}
+.brand h1 {margin:0;font-size:19px;letter-spacing:-0.3px;line-height:1.1}
+.brand p {margin:0;color:var(--muted);font-size:12px;white-space:nowrap}
+.iconbtn {
+  border:1px solid var(--line);background:var(--panel-glass);
+  color:var(--text);padding:9px 12px;border-radius:12px;
+  font:inherit;font-size:14px;cursor:pointer;white-space:nowrap;
+}
+.iconbtn:focus-visible, .iconbtn:hover {border-color:var(--cyan)}
+.iconbtn:focus-visible {outline:2px solid var(--cyan);outline-offset:2px}
+.topbar .actions {display:flex;gap:8px}
+
+/* Layers menu */
+.layers {
+  position:fixed;right:12px;top:calc(66px + var(--safe-top));z-index:6;
+  background:var(--panel-glass);border:1px solid var(--line);
+  border-radius:14px;padding:6px 8px;min-width:200px;
+  box-shadow:0 10px 30px rgba(0,0,0,0.45);
+}
+.layers label {
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:9px 6px;font-size:14px;cursor:pointer;
+}
+.layers label + label {border-top:1px solid var(--line)}
+.layers input {accent-color:var(--cyan);width:18px;height:18px}
+.layers label.soon {color:var(--muted);cursor:default}
+.layers label.soon small, .layers label.on small {
+  font-size:11px;padding:2px 7px;border-radius:10px;
+  border:1px solid var(--line);
+}
+.layers label.on {cursor:default}
+.layers label.on small {color:var(--green);border-color:#2c5a46}
+
+/* Bottom panel */
+.panel {
+  position:fixed;left:0;right:0;bottom:0;z-index:5;
+  margin:0 auto;max-width:560px;
+  background:var(--panel-glass);border:1px solid var(--line);border-bottom:0;
+  border-radius:18px 18px 0 0;
+  padding:12px 16px calc(14px + var(--safe-bottom));
+  backdrop-filter:blur(8px);
+  box-shadow:0 -10px 30px rgba(0,0,0,0.35);
+}
+.panel .grip {
+  width:40px;height:4px;border-radius:2px;background:var(--line);
+  margin:0 auto 10px;
+}
+.where {
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  margin-bottom:10px;
+}
+.where strong {font-size:16px}
+.badge {
+  display:inline-block;padding:3px 9px;border-radius:20px;
+  font-size:12px;background:#1b2a3d;color:var(--muted);white-space:nowrap;
+}
+.row {
+  display:grid;grid-template-columns:28px 1fr;gap:10px;align-items:start;
+  padding:9px 0;border-top:1px solid var(--line);
+}
+.row .ico {font-size:20px;line-height:1.3;text-align:center}
+.row strong {display:block;font-size:14px}
+.row span {display:block;color:var(--muted);font-size:13px;line-height:1.4}
+.row.live strong {color:var(--text)}
+.row.live span {color:var(--green)}
+.row.live span.warn {color:var(--amber)}
+.panel .foot {
+  display:flex;justify-content:space-between;align-items:center;
+  margin-top:8px;color:var(--muted);font-size:12px;
+}
+.linkbtn {
+  background:none;border:0;color:var(--cyan);font:inherit;font-size:13px;
+  cursor:pointer;padding:4px 0;
+}
+.linkbtn:focus-visible {outline:2px solid var(--cyan);border-radius:4px}
+
+/* About sheet */
+.sheet {
+  position:fixed;inset:0;z-index:10;background:rgba(4,8,15,0.6);
+  display:flex;align-items:flex-end;justify-content:center;
+}
+.sheet .inner {
+  width:100%;max-width:560px;background:var(--panel);
+  border:1px solid var(--line);border-bottom:0;
+  border-radius:18px 18px 0 0;
+  padding:18px 18px calc(22px + var(--safe-bottom));
+  max-height:85vh;overflow:auto;
+}
+.sheet .head {display:flex;align-items:center;gap:12px;margin-bottom:8px}
+.sheet .emblem {width:48px;height:48px;flex-basis:48px}
+.sheet h2 {margin:0;font-size:22px}
+.sheet .tag {margin:0;color:var(--cyan);font-size:14px}
+.sheet p {margin:10px 0;color:var(--muted);font-size:14px}
+.sheet p.by {color:var(--text)}
+.sheet a {color:var(--cyan)}
+.sheet .close {margin-top:12px;width:100%}
+
+.hidden {display:none!important}
+
+/* Map labels for rings and compass */
+.ringlabel {
+  color:var(--cyan);font-size:11px;opacity:0.8;white-space:nowrap;
+  text-shadow:0 0 4px #000,0 0 4px #000;
+}
+.compass {
+  color:var(--text);font-size:13px;font-weight:600;white-space:nowrap;
+  text-shadow:0 0 5px #000,0 0 5px #000;text-align:center;
+}
+.compass.cardinal {font-size:15px;color:var(--cyan)}
+
+@media (prefers-reduced-motion: no-preference) {
+  .layers, .sheet .inner {animation:rise .18s ease-out}
+  @keyframes rise {from {transform:translateY(8px);opacity:0} to {transform:none;opacity:1}}
+}
+@media (max-width:360px) {
+  .brand p {display:none}
+}
+</style>
+</head>
+
+<body>
+
+<div id="map" role="application" aria-label="Sky map"></div>
+
+<header class="topbar">
+  <div class="brand">
+    <div class="emblem" aria-hidden="true"></div>
+    <div>
+      <h1>Sky Peek</h1>
+      <p>Look Up. Stay Curious.</p>
+    </div>
+  </div>
+  <div class="actions">
+    <button id="layersBtn" class="iconbtn" aria-expanded="false" aria-controls="layersMenu">Layers</button>
+    <button id="locationBtn" class="iconbtn">◎ My location</button>
+  </div>
+</header>
+
+<div id="layersMenu" class="layers hidden" role="group" aria-label="Map layers">
+  <label class="on">
+    <span>Aircraft</span>
+    <small>Always on</small>
+  </label>
+  <label class="soon">
+    <span>Satellites</span>
+    <small>Coming soon</small>
+  </label>
+  <label class="soon">
+    <span>Weather radar</span>
+    <small>Coming soon</small>
+  </label>
+</div>
+
+<section class="panel" aria-label="What is above you">
+  <div class="grip" aria-hidden="true"></div>
+  <div class="where">
+    <strong id="place">Trivandrum, India</strong>
+    <span id="dayMode" class="badge">Loading local time…</span>
+  </div>
+
+  <div class="row live">
+    <div class="ico">✈</div>
+    <div>
+      <strong>Aircraft nearby</strong>
+      <span id="aircraftStatus">Connecting…</span>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="ico">✦</div>
+    <div>
+      <strong>Visible now</strong>
+      <span>Satellite tracking is not implemented yet. This will list satellites currently above your horizon once it is built.</span>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="ico">◉</div>
+    <div>
+      <strong>Next visible pass</strong>
+      <span>Not available yet. Pass predictions for the ISS and Starlink will appear here in a later update.</span>
+    </div>
+  </div>
+
+  <div class="foot">
+    <span>Rings show distance from you, 10 km apart.</span>
+    <button id="aboutBtn" class="linkbtn">About Sky Peek</button>
+  </div>
+</section>
+
+<div id="aboutSheet" class="sheet hidden" role="dialog" aria-modal="true" aria-labelledby="aboutTitle">
+  <div class="inner">
+    <div class="head">
+      <div class="emblem" aria-hidden="true"></div>
+      <div>
+        <h2 id="aboutTitle">Sky Peek</h2>
+        <p class="tag">Look Up. Stay Curious.</p>
+      </div>
+    </div>
+    <p class="by">By ZDI</p>
+    <p>Sky Peek shows what is above you: aircraft around you now, and in future updates the satellites and Starlink trains that may be visible overhead.</p>
+    <p>The distance rings measure ground distance from your position only. They are not a guide to what you can see in the sky.</p>
+    <p>Your location stays in your browser. It is used to centre the map and fetch nearby aircraft, and is not sent to a Sky Peek server. If you deny location access, the map shows a default city instead.</p>
+    <p>Aircraft data: <a href="https://adsb.fi" target="_blank" rel="noopener">adsb.fi</a> open data, for personal, non-commercial use. Map: <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors.</p>
+    <button id="aboutClose" class="iconbtn close">Close</button>
+  </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+let lat = 8.498;
+let lon = 76.944;
+let map;
+let marker;
+
+/* Map display radius: five rings, 10 km apart, out to 50 km.
+   This is ground distance only. It must never be used to decide
+   whether a satellite is visible, and it is a different number
+   from the aircraft search radius below. */
+const RING_STEP_KM = 10;
+const RING_COUNT = 5;
+let ringsLayer = null;
+let compassLayer = null;
+
+function updateDayNight() {
+  const hour = new Date().getHours();
+  const night = hour < 6 || hour >= 18;
+  document.getElementById("dayMode").textContent =
+    night ? "Night" : "Daytime";
+}
+
+/* Move a point a given distance (km) along a bearing (degrees). */
+function destinationPoint(latDeg, lonDeg, bearingDeg, distanceKm) {
+  const R = 6371;
+  const d = distanceKm / R;
+  const brng = bearingDeg * Math.PI / 180;
+  const lat1 = latDeg * Math.PI / 180;
+  const lon1 = lonDeg * Math.PI / 180;
+  const lat2 = Math.asin(Math.sin(lat1) * Math.cos(d) +
+    Math.cos(lat1) * Math.sin(d) * Math.cos(brng));
+  const lon2 = lon1 + Math.atan2(
+    Math.sin(brng) * Math.sin(d) * Math.cos(lat1),
+    Math.cos(d) - Math.sin(lat1) * Math.sin(lat2));
+  return [lat2 * 180 / Math.PI, lon2 * 180 / Math.PI];
+}
+
+function drawRings() {
+  if (ringsLayer) map.removeLayer(ringsLayer);
+  ringsLayer = L.layerGroup().addTo(map);
+
+  for (let i = 1; i <= RING_COUNT; i++) {
+    const km = i * RING_STEP_KM;
+    L.circle([lat, lon], {
+      radius: km * 1000,
+      color: "#61d8f5",
+      weight: i === RING_COUNT ? 1.5 : 1,
+      opacity: i === RING_COUNT ? 0.7 : 0.4,
+      dashArray: i === RING_COUNT ? null : "4 6",
+      fill: false,
+      interactive: false
+    }).addTo(ringsLayer);
+
+    // Label each ring on its south-east edge so labels do not sit on the compass points.
+    const pos = destinationPoint(lat, lon, 157.5, km);
+    L.marker(pos, {
+      interactive: false,
+      icon: L.divIcon({className: "ringlabel", html: km + " km", iconSize: null})
+    }).addTo(ringsLayer);
+  }
+}
+
+function drawCompass() {
+  if (compassLayer) map.removeLayer(compassLayer);
+  compassLayer = L.layerGroup().addTo(map);
+
+  const points = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"];
+  const outer = RING_COUNT * RING_STEP_KM + 6; // just outside the last ring
+
+  points.forEach((name, i) => {
+    const bearing = i * 45;
+    const pos = destinationPoint(lat, lon, bearing, outer);
+    const cls = name.length === 1 ? "compass cardinal" : "compass";
+    L.marker(pos, {
+      interactive: false,
+      icon: L.divIcon({className: cls, html: name, iconSize: [30, 18], iconAnchor: [15, 9]})
+    }).addTo(compassLayer);
+  });
+}
+
+function updateMap() {
+  if (!map) {
+    map = L.map("map").setView([lat, lon], 9);
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> | Aircraft: <a href="https://adsb.fi">adsb.fi</a> | Sky Peek by ZDI',
+      maxZoom: 19
+    }).addTo(map);
+    marker = L.circleMarker([lat, lon], {
+      radius: 7, color: "#ffffff", fillColor: "#3f8cff",
+      fillOpacity: 1, weight: 2
+    }).addTo(map).bindPopup("Your selected location");
+  } else {
+    marker.setLatLng([lat, lon]);
+  }
+  fitRingsOnScreen();
+  drawRings();
+  drawCompass();
+}
+
+/* Choose a zoom so the outer ring and compass letters fit in the part
+   of the screen not covered by the top bar or the bottom panel.
+   Leaflet picks the zoom; the rings stay centred on your position. */
+function fitRingsOnScreen() {
+  const topbar = document.querySelector(".topbar");
+  const panel = document.querySelector(".panel");
+  const topPad = topbar ? topbar.offsetHeight : 0;
+  const bottomPad = panel ? panel.offsetHeight : 0;
+  const extentMetres = (RING_COUNT * RING_STEP_KM + 8) * 1000 * 2;
+  const bounds = L.latLng(lat, lon).toBounds(extentMetres);
+  map.fitBounds(bounds, {
+    paddingTopLeft: [8, topPad + 8],
+    paddingBottomRight: [8, bottomPad + 8],
+    animate: false
+  });
+}
+
+function useLocation() {
+  if (!navigator.geolocation) {
+    alert("Location is not supported by this browser.");
+    return;
+  }
+
+  const placeEl = document.getElementById("place");
+  const previousLabel = placeEl.textContent;
+  placeEl.textContent = "Finding your location…";
+
+  navigator.geolocation.getCurrentPosition(
+    position => {
+      lat = position.coords.latitude;
+      lon = position.coords.longitude;
+      // Coordinates stay in the browser; the screen shows a label only.
+      placeEl.textContent = "Your location";
+      updateMap();
+      updateAircraft();
+    },
+    () => {
+      // Keep the map, coordinates and aircraft exactly where they were.
+      placeEl.textContent = previousLabel;
+      alert("Location permission was denied or unavailable. The map stays on its current location.");
+    },
+    {enableHighAccuracy:false, timeout:12000, maximumAge:300000}
+  );
+}
+
+/* Layers menu */
+const layersBtn = document.getElementById("layersBtn");
+const layersMenu = document.getElementById("layersMenu");
+layersBtn.onclick = () => {
+  const open = layersMenu.classList.toggle("hidden");
+  layersBtn.setAttribute("aria-expanded", String(!open));
+};
+
+/* About sheet */
+const aboutSheet = document.getElementById("aboutSheet");
+document.getElementById("aboutBtn").onclick = () => aboutSheet.classList.remove("hidden");
+document.getElementById("aboutClose").onclick = () => aboutSheet.classList.add("hidden");
+aboutSheet.onclick = e => { if (e.target === aboutSheet) aboutSheet.classList.add("hidden"); };
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape") {
+    aboutSheet.classList.add("hidden");
+    layersMenu.classList.add("hidden");
+    layersBtn.setAttribute("aria-expanded", "false");
+  }
+});
+
+document.getElementById("locationBtn").onclick = useLocation;
+window.addEventListener("resize", () => { if (map) fitRingsOnScreen(); });
+
+updateDayNight();
+
+/* Aircraft search radius for the adsb.fi request, in nautical miles.
+   50 NM is about 93 km. This is deliberately wider than the 50 km
+   rings and is unchanged from the original implementation. */
+const AIRCRAFT_SEARCH_NM = 50;
+
+let aircraftLayer = null;
+let aircraftRefreshTimer = null;
+
+async function updateAircraft() {
+  const status = document.getElementById("aircraftStatus");
+
+  try {
+    status.textContent = "Loading aircraft…";
+
+    const url =
+      `https://opendata.adsb.fi/api/v3/lat/${lat}/lon/${lon}/dist/${AIRCRAFT_SEARCH_NM}`;
+
+    const response = await fetch(url, {
+  mode: "cors"
+});
+
+    if (!response.ok) {
+      throw new Error("Aircraft data unavailable");
+    }
+
+    const data = await response.json();
+    const aircraft = data.ac || [];
+
+    if (aircraftLayer) {
+      map.removeLayer(aircraftLayer);
+    }
+
+    aircraftLayer = L.layerGroup().addTo(map);
+
+    aircraft.forEach(plane => {
+      if (typeof plane.lat !== "number" ||
+          typeof plane.lon !== "number") return;
+
+      const marker = L.circleMarker(
+        [plane.lat, plane.lon],
+        {
+          radius: 6,
+          color: "#54d6ff",
+          fillColor: "#54d6ff",
+          fillOpacity: 0.9,
+          weight: 2
+        }
+      );
+
+      const callsign = (plane.flight || plane.r || "Unknown aircraft").trim();
+      const altitude = plane.alt_baro ?? "Unknown";
+      const speed = plane.gs ?? "Unknown";
+      const heading = plane.track ?? "Unknown";
+
+      marker.bindPopup(
+        `<b>${callsign}</b><br>` +
+        `Altitude: ${altitude} ft<br>` +
+        `Speed: ${speed} knots<br>` +
+        `Heading: ${heading}°`
+      );
+
+      marker.addTo(aircraftLayer);
+    });
+
+    status.textContent = `${aircraft.length} aircraft found`;
+
+  } catch (error) {
+    status.textContent = "Aircraft data temporarily unavailable";
+    console.error("Sky Peek aircraft error:", error);
+  }
+}
+
+function startAircraftTracking() {
+  updateAircraft();
+
+  if (aircraftRefreshTimer) {
+    clearInterval(aircraftRefreshTimer);
+  }
+
+  aircraftRefreshTimer = setInterval(updateAircraft, 60000);
+}
+updateMap();
+startAircraftTracking();
+</script>
+</body>
+</html>
