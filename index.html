@@ -507,7 +507,7 @@ async function updateAircraft() {
     }
 
     const data = await response.json();
-    const aircraft = data.ac || [];
+    const aircraft = data.aircraft || data.ac || [];
 
     if (aircraftLayer) {
       map.removeLayer(aircraftLayer);
