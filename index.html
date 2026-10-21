@@ -672,12 +672,26 @@ function deselectAircraft() {
 }
 $("selClose").onclick = deselectAircraft;
 
+function distanceKm(lat1, lon1, lat2, lon2) {
+  const toRad = degrees => degrees * Math.PI / 180;
+  const dLat = toRad(lat2 - lat1);
+  const dLon = toRad(lon2 - lon1);
+  const a = Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
+  return 6371 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
 function renderAircraft(list) {
   if (aircraftLayer) map.removeLayer(aircraftLayer);
   aircraftLayer = L.layerGroup().addTo(map);
   let plotted = 0, stillSelected = false;
   list.forEach(plane => {
     if (typeof plane.lat !== "number" || typeof plane.lon !== "number") return;
+
+    // The provider search radius is 50 nautical miles, but the visible rings
+    // represent 50 kilometres. Only plot aircraft inside the outer ring.
+    if (distanceKm(lat, lon, plane.lat, plane.lon) > VIEW_RADIUS_KM) return;
+
     const isSel = selectedHex && plane.hex === selectedHex;
     if (isSel) stillSelected = true;
     const m = L.marker([plane.lat, plane.lon], {icon: aircraftIcon(plane, isSel), keyboard: false});
