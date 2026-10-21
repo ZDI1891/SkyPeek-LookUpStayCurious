@@ -339,7 +339,7 @@ button {font:inherit;color:inherit}
     <p class="by">By ZDI</p>
     <p>Sky Peek shows what is above you: aircraft around your location now, with satellite and Starlink passes to follow in a later update.</p>
     <p>The rings mark ground distance from your position, 10 km apart. They are a sense of scale, not a guide to what is visible in the sky.</p>
-    <p>Your location is kept in your browser and used to centre the map. To find nearby aircraft, the selected coordinates are sent to the aircraft data provider with each request. Sky Peek has no server of its own and stores nothing.</p>
+    <p>Your selected location is used to centre the map and find nearby aircraft. The coordinates are sent through a Sky Peek Cloudflare Worker relay to the aircraft data provider. The relay temporarily caches aircraft responses for about 10 seconds to reduce repeat requests; Sky Peek does not use this relay to store your personal location.</p>
     <p>Aircraft data: <a id="providerLink" href="https://adsb.fi" target="_blank" rel="noopener">adsb.fi</a> community network (adsb.fi, airplanes.live or adsb.lol, whichever answers), for personal, non-commercial use. Basemap: <a href="https://www.esri.com" target="_blank" rel="noopener">Esri</a> World Dark Gray Canvas, with data from Esri, HERE, Garmin and <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors.</p>
     <button class="close" id="aboutClose">Close</button>
   </div>
@@ -573,16 +573,12 @@ setInterval(updateClock, 15000);
    free community networks that share the same response format and stops at
    the first one that answers. The attribution names whichever one is in use. */
 const AIRCRAFT_SEARCH_NM = 50;
-const PROVIDERS = [
-  {name: "adsb.fi",        url: "https://adsb.fi",        api: (la, lo) => `https://opendata.adsb.fi/api/v2/lat/${la}/lon/${lo}/dist/${AIRCRAFT_SEARCH_NM}`},
-  {name: "airplanes.live", url: "https://airplanes.live", api: (la, lo) => `https://api.airplanes.live/v2/point/${la}/${lo}/${AIRCRAFT_SEARCH_NM}`},
-  {name: "adsb.lol",       url: "https://adsb.lol",       api: (la, lo) => `https://api.adsb.lol/v2/lat/${la}/lon/${lo}/dist/${AIRCRAFT_SEARCH_NM}`}
-];
+const RELAY_URL = "https://skypeek-relay.davidiyre7323.workers.dev/";
 let activeProvider = null;
 let aircraftAttribution = null;
 
 function setProviderAttribution(p) {
-  if (activeProvider === p) return;
+  if (activeProvider && p && activeProvider.name === p.name) return;
   activeProvider = p;
   const ctl = map.attributionControl;
   if (aircraftAttribution) ctl.removeAttribution(aircraftAttribution);
@@ -593,23 +589,32 @@ function setProviderAttribution(p) {
 }
 
 async function fetchAircraft() {
-  // keep using the provider that last worked; fall through the chain if it fails
-  const order = activeProvider ? [activeProvider, ...PROVIDERS.filter(p => p !== activeProvider)] : PROVIDERS;
-  let lastError = null;
-  for (const p of order) {
-    try {
-      const response = await fetch(p.api(lat, lon), {mode: "cors"});
-      if (!response.ok) throw new Error(`${p.name} responded ${response.status}`);
-      const data = await response.json();
-      setProviderAttribution(p);
-      return data.ac || data.aircraft || [];
-    } catch (e) {
-      lastError = e;
-      console.warn("Sky Peek aircraft provider failed:", p.name, e.message);
-    }
+  const params = new URLSearchParams({
+    lat: String(lat),
+    lon: String(lon),
+    dist: String(AIRCRAFT_SEARCH_NM)
+  });
+
+  const response = await fetch(`${RELAY_URL}?${params.toString()}`);
+  if (!response.ok) {
+    throw new Error(`Aircraft relay responded ${response.status}`);
   }
-  throw lastError || new Error("All aircraft providers failed");
+
+  const data = await response.json();
+  const sourceNames = {
+    "adsb.fi": { name: "adsb.fi", url: "https://adsb.fi" },
+    "adsb.lol": { name: "adsb.lol", url: "https://adsb.lol" },
+    "airplanes.live": { name: "airplanes.live", url: "https://airplanes.live" }
+  };
+
+  setProviderAttribution(sourceNames[data.source] || {
+    name: "ADS-B community network",
+    url: "https://adsb.lol"
+  });
+
+  return data.aircraft || data.ac || [];
 }
+
 const PLANE_SVG = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg>';
 
 let aircraftLayer = null;
